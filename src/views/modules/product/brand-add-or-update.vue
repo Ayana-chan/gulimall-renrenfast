@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="!dataForm.brandId ? '新增' : '修改'"
+    :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :visible.sync="visible"
   >
@@ -22,24 +22,19 @@
         <el-input v-model="dataForm.descript" placeholder="介绍"></el-input>
       </el-form-item>
       <el-form-item label="显示状态" prop="showStatus">
-        <!-- <el-input v-model="dataForm.showStatus" placeholder="显示状态[0-不显示；1-显示]"></el-input> -->
         <el-switch
           v-model="dataForm.showStatus"
-          :active-value="1"
-          :inactive-value="0"
           active-color="#13ce66"
           inactive-color="#ff4949"
-        >
-        </el-switch>
+          :active-value="1"
+          :inactive-value="0"
+        ></el-switch>
       </el-form-item>
       <el-form-item label="检索首字母" prop="firstLetter">
-        <el-input
-          v-model="dataForm.firstLetter"
-          placeholder="检索首字母"
-        ></el-input>
+        <el-input v-model="dataForm.firstLetter" placeholder="检索首字母"></el-input>
       </el-form-item>
       <el-form-item label="排序" prop="sort">
-        <el-input v-model="dataForm.sort" placeholder="排序"></el-input>
+        <el-input v-model.number="dataForm.sort" placeholder="排序"></el-input>
       </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
@@ -50,13 +45,9 @@
 </template>
 
 <script>
-import singleUpload from "@/components/upload/singleUpload.vue";
-import SingleUpload from "../../../components/upload/singleUpload.vue";
-
+import SingleUpload from "@/components/upload/singleUpload";
 export default {
-  components() {
-    singleUpload;
-  },
+  components: { SingleUpload },
   data() {
     return {
       visible: false,
@@ -65,9 +56,9 @@ export default {
         name: "",
         logo: "",
         descript: "",
-        showStatus: "",
+        showStatus: 1,
         firstLetter: "",
-        sort: ""
+        sort: 0
       },
       dataRule: {
         name: [{ required: true, message: "品牌名不能为空", trigger: "blur" }],
@@ -85,9 +76,33 @@ export default {
           }
         ],
         firstLetter: [
-          { required: true, message: "检索首字母不能为空", trigger: "blur" }
+          {
+            validator: (rule, value, callback) => {
+              if (value == "") {
+                callback(new Error("首字母必须填写"));
+              } else if (!/^[a-zA-Z]$/.test(value)) {
+                callback(new Error("首字母必须a-z或者A-Z之间"));
+              } else {
+                callback();
+              }
+            },
+            trigger: "blur"
+          }
         ],
-        sort: [{ required: true, message: "排序不能为空", trigger: "blur" }]
+        sort: [
+          {
+            validator: (rule, value, callback) => {
+              if (value == "") {
+                callback(new Error("排序字段必须填写"));
+              } else if (!Number.isInteger(value) || value<0) {
+                callback(new Error("排序必须是一个大于等于0的整数"));
+              } else {
+                callback();
+              }
+            },
+            trigger: "blur"
+          }
+        ]
       }
     };
   },
@@ -153,7 +168,6 @@ export default {
         }
       });
     }
-  },
-  components: { SingleUpload }
+  }
 };
 </script>
